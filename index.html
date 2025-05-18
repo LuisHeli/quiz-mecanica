@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Engenharia Mecânica</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2b5876;
+            --secondary: #4e4376;
+            --accent: #f39c12;
+            --correct: #27ae60;
+            --incorrect: #e74c3c;
+            --text: #ecf0f1;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --bg-gradient: linear-gradient(135deg, #1a1a2e, #16213e);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .question-container {
+            margin-bottom: 2rem;
+        }
+
+        .question-number {
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .option.selected {
+            border-color: var(--accent);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .option.correct {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: var(--correct);
+        }
+
+        .option.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: var(--incorrect);
+        }
+
+        .feedback {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .feedback.correct {
+            background: rgba(39, 174, 96, 0.2);
+            border-left: 4px solid var(--correct);
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid var(--incorrect);
+            display: block;
+        }
+
+        .feedback-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback-text {
+            font-size: 0.95rem;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results-container {
+            text-align: center;
+            display: none;
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .score-text {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .restart-btn {
+            margin: 0 auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cogs"></i> Quiz de Engenharia Mecânica</h1>
+            <p class="subtitle">Teste seus conhecimentos sobre conceitos fundamentais</p>
+        </header>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div id="quiz-container">
+            <div class="question-container">
+                <div class="question-number" id="question-number">Questão 1 de 10</div>
+                <div class="question-text" id="question-text"></div>
+            </div>
+
+            <div class="options-container" id="options-container">
+                <!-- Opções serão inseridas aqui via JavaScript -->
+            </div>
+
+            <div class="feedback" id="feedback">
+                <div class="feedback-title" id="feedback-title">
+                    <i class="fas fa-check-circle"></i> Resposta Correta!
+                </div>
+                <div class="feedback-text" id="feedback-text"></div>
+            </div>
+
+            <div class="navigation">
+                <button id="prev-btn" disabled>
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                <button id="next-btn">
+                    Próxima <i class="fas fa-arrow-right"></i>
+                </button>
+                <button id="submit-btn" style="display: none;">
+                    <i class="fas fa-paper-plane"></i> Enviar Quiz
+                </button>
+            </div>
+        </div>
+
+        <div class="results-container" id="results-container">
+            <h2>Quiz Concluído!</h2>
+            <div class="score" id="score">0%</div>
+            <div class="score-text" id="score-text"></div>
+            <button class="restart-btn" id="restart-btn">
+                <i class="fas fa-redo"></i> Refazer Quiz
+            </button>
+        </div>
+    </div>
+
+    <footer>
+        Quiz desenvolvido por Luis Heli
+    </footer>
+
+    <script>
+        // Banco de questões
+        const questions = [
+            {
+                question: "Qual a primeira lei da termodinâmica?",
+                options: [
+                    "A energia não pode ser criada nem destruída, apenas transformada",
+                    "A entropia de um sistema isolado sempre aumenta",
+                    "A pressão e o volume de um gás são inversamente proporcionais",
+                    "A energia total de um sistema isolado é constante"
+                ],
+                answer: 0,
+                feedback: "A primeira lei da termodinâmica é o princípio da conservação de energia, que estabelece que a energia não pode ser criada nem destruída, apenas transformada de uma forma para outra."
+            },
+            {
+                question: "O que o módulo de elasticidade (módulo de Young) representa?",
+                options: [
+                    "A resistência ao impacto de um material",
+                    "A relação entre tensão e deformação na região elástica",
+                    "A dureza superficial de um material",
+                    "A capacidade de um material de absorver energia"
+                ],
+                answer: 1,
+                feedback: "O módulo de elasticidade ou módulo de Young é uma propriedade mecânica que mede a rigidez de um material sólido, representando a relação entre a tensão aplicada e a deformação resultante na região elástica."
+            },
+            {
+                question: "Qual o principal objetivo de um ciclo de Carnot?",
+                options: [
+                    "Maximizar a eficiência térmica de uma máquina",
+                    "Minimizar o consumo de combustível",
+                    "Reduzir as emissões poluentes",
+                    "Aumentar a potência de saída"
+                ],
+                answer: 0,
+                feedback: "O ciclo de Carnot é um ciclo termodinâmico teórico que estabelece o limite máximo de eficiência que qualquer máquina térmica pode atingir operando entre duas temperaturas."
+            },
+            {
+                question: "O que é o coeficiente de Poisson?",
+                options: [
+                    "Razão entre a deformação transversal e a deformação longitudinal",
+                    "Relação entre tensão e condutividade térmica",
+                    "Medida da resistência à fadiga de um material",
+                    "Índice de expansão térmica linear"
+                ],
+                answer: 0,
+                feedback: "O coeficiente de Poisson é uma grandeza adimensional que caracteriza a contração transversal quando um material é submetido a um alongamento longitudinal, definido como a razão negativa entre as deformações transversal e longitudinal."
+            },
+            {
+                question: "Qual a função principal de um mancal de rolamento?",
+                options: [
+                    "Absorver impactos mecânicos",
+                    "Reduzir o atrito entre partes móveis",
+                    "Aumentar a rigidez do sistema",
+                    "Isolar vibrações"
+                ],
+                answer: 1,
+                feedback: "Os mancais de rolamento têm como função principal reduzir o atrito entre partes móveis, substituindo o atrito de deslizamento por atrito de rolamento, o que aumenta a eficiência mecânica."
+            },
+            {
+                question: "O que representa o número de Reynolds em mecânica dos fluidos?",
+                options: [
+                    "A razão entre forças viscosas e forças gravitacionais",
+                    "A relação entre forças inerciais e forças viscosas",
+                    "O coeficiente de transferência de calor",
+                    "A eficiência de uma bomba hidráulica"
+                ],
+                answer: 1,
+                feedback: "O número de Reynolds é um número adimensional que representa a relação entre as forças inerciais e as forças viscosas em um fluido em movimento, sendo fundamental para determinar o regime de escoamento (laminar ou turbulento)."
+            },
+            {
+                question: "Qual a principal aplicação da equação de Bernoulli?",
+                options: [
+                    "Cálculo de tensões em vigas",
+                    "Análise de escoamento de fluidos",
+                    "Dimensionamento de engrenagens",
+                    "Cálculo de eficiência térmica"
+                ],
+                answer: 1,
+                feedback: "A equação de Bernoulli é fundamental na mecânica dos fluidos, relacionando pressão, velocidade e altura em um fluido incompressível e não viscoso em regime estacionário."
+            },
+            {
+                question: "O que é o módulo de resiliência de um material?",
+                options: [
+                    "A capacidade de absorver energia sem sofrer deformação permanente",
+                    "A resistência à propagação de trincas",
+                    "A capacidade de retornar à forma original após deformação",
+                    "A resistência ao desgaste por abrasão"
+                ],
+                answer: 0,
+                feedback: "O módulo de resiliência representa a capacidade de um material absorver energia quando é deformado elasticamente, sendo numericamente igual à área sob a curva tensão-deformação até o limite de proporcionalidade."
+            },
+            {
+                question: "Qual a função do trem de engrenagens epicíclico (planetário)?",
+                options: [
+                    "Aumentar a velocidade de rotação",
+                    "Reduzir o ruído operacional",
+                    "Proporcionar múltiplas relações de transmissão em um espaço compacto",
+                    "Aumentar a capacidade de torque"
+                ],
+                answer: 2,
+                feedback: "Os trens de engrenagens epicíclicos ou planetários permitem obter diferentes relações de transmissão em um arranjo compacto, sendo amplamente utilizados em caixas de câmbio automotivas e sistemas de transmissão de potência."
+            },
+            {
+                question: "O que caracteriza um material dúctil?",
+                options: [
+                    "Alta resistência ao impacto",
+                    "Capacidade de deformar plasticamente sem fraturar",
+                    "Alta condutividade térmica",
+                    "Resistência à corrosão"
+                ],
+                answer: 1,
+                feedback: "Materiais dúcteis são aqueles que podem sofrer deformação plástica significativa antes da fratura, uma propriedade importante em aplicações onde é necessária absorção de energia ou conformação mecânica."
+            }
+        ];
+
+        // Variáveis de estado
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let userAnswers = Array(questions.length).fill(null);
+
+        // Elementos DOM
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+        const questionNumberElement = document.getElementById('question-number');
+        const questionTextElement = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackElement = document.getElementById('feedback');
+        const feedbackTitleElement = document.getElementById('feedback-title');
+        const feedbackTextElement = document.getElementById('feedback-text');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreElement = document.getElementById('score');
+        const scoreTextElement = document.getElementById('score-text');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Inicializar o quiz
+        function initQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedOption = null;
+            userAnswers = Array(questions.length).fill(null);
+            
+            quizContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            
+            loadQuestion();
+            updateNavigation();
+        }
+
+        // Carregar questão
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            
+            // Atualizar número da questão
+            questionNumberElement.textContent = `Questão ${currentQuestion + 1} de ${questions.length}`;
+            
+            // Atualizar texto da questão
+            questionTextElement.textContent = question.question;
+            
+            // Atualizar barra de progresso
+            progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            
+            // Limpar opções anteriores
+            optionsContainer.innerHTML = '';
+            
+            // Adicionar novas opções
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                
+                // Marcar opção selecionada anteriormente
+                if (userAnswers[currentQuestion] === index) {
+                    optionElement.classList.add('selected');
+                }
+                
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Limpar feedback
+            feedbackElement.className = 'feedback';
+            feedbackElement.style.display = 'none';
+            
+            // Se a questão já foi respondida, mostrar feedback
+            if (userAnswers[currentQuestion] !== null) {
+                showFeedback();
+            }
+        }
+
+        // Selecionar opção
+        function selectOption(e) {
+            // Remover seleção anterior
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+            
+            // Adicionar seleção atual
+            e.target.classList.add('selected');
+            selectedOption = parseInt(e.target.dataset.index);
+            userAnswers[currentQuestion] = selectedOption;
+            
+            // Mostrar feedback
+            showFeedback();
+            updateNavigation();
+        }
+
+        // Mostrar feedback
+        function showFeedback() {
+            const question = questions[currentQuestion];
+            const userAnswer = userAnswers[currentQuestion];
+            
+            if (userAnswer === null) return;
+            
+            // Marcar opções corretas/incorretas
+            const options = document.querySelectorAll('.option');
+            options.forEach((option, index) => {
+                if (index === question.answer) {
+                    option.classList.add('correct');
+                } else if (index === userAnswer && userAnswer !== question.answer) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Configurar feedback
+            if (userAnswer === question.answer) {
+                feedbackElement.classList.add('correct');
+                feedbackTitleElement.innerHTML = '<i class="fas fa-check-circle"></i> Resposta Correta!';
+            } else {
+                feedbackElement.classList.add('incorrect');
+                feedbackTitleElement.innerHTML = '<i class="fas fa-times-circle"></i> Resposta Incorreta';
+            }
+            
+            feedbackTextElement.textContent = question.feedback;
+            feedbackElement.style.display = 'block';
+        }
+
+        // Atualizar navegação
+        function updateNavigation() {
+            // Botão Anterior
+            prevBtn.disabled = currentQuestion === 0;
+            
+            // Botão Próxima/Enviar
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+                submitBtn.disabled = userAnswers[currentQuestion] === null;
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+                nextBtn.disabled = userAnswers[currentQuestion] === null;
+            }
+        }
+
+        // Navegar para próxima questão
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                selectedOption = null;
+                loadQuestion();
+                updateNavigation();
+            }
+        }
+
+        // Navegar para questão anterior
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                selectedOption = userAnswers[currentQuestion];
+                loadQuestion();
+                updateNavigation();
+            }
+        }
+
+        // Submeter quiz
+        function submitQuiz() {
+            // Calcular pontuação
+            score = 0;
+            questions.forEach((question, index) => {
+                if (userAnswers[index] === question.answer) {
+                    score++;
+                }
+            });
+            
+            // Mostrar resultados
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            scoreElement.textContent = `${percentage}%`;
+            
+            // Mensagem personalizada baseada na pontuação
+            if (percentage >= 90) {
+                scoreTextElement.textContent = 'Excelente! Você domina os conceitos de Engenharia Mecânica.';
+            } else if (percentage >= 70) {
+                scoreTextElement.textContent = 'Bom trabalho! Você tem um bom conhecimento da área.';
+            } else if (percentage >= 50) {
+                scoreTextElement.textContent = 'Resultado razoável. Revise alguns conceitos para melhorar.';
+            } else {
+                scoreTextElement.textContent = 'Continue estudando! A prática leva à perfeição.';
+            }
+        }
+
+        // Event listeners
+        prevBtn.addEventListener('click', prevQuestion);
+        nextBtn.addEventListener('click', nextQuestion);
+        submitBtn.addEventListener('click', submitQuiz);
+        restartBtn.addEventListener('click', initQuiz);
+
+        // Iniciar o quiz
+        document.addEventListener('DOMContentLoaded', initQuiz);
+    </script>
+</body>
+</html>
